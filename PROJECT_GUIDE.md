@@ -618,8 +618,8 @@ class ModelResponse(BaseModel):  # schemas/eval.py
     token_count: int
     finish_reason: str
     timestamp: datetime
-    from_cache: bool = False     # always record whether response was cached
-    attempt_number: int = 1      # retry tracking
+    from_cache: bool = False  # always record whether response was cached
+    attempt_number: int = 1  # retry tracking
 ```
 
 All metadata for Langfuse tracing is injected via the `metadata` parameter:
@@ -632,8 +632,8 @@ await litellm.acompletion(
         "run_id": str(run_id),
         "consumer_id": consumer_id,
         "task_type": task_type,
-        "generation_name": f"eval-{model_id}"
-    }
+        "generation_name": f"eval-{model_id}",
+    },
 )
 ```
 
@@ -668,13 +668,13 @@ scoring.py
 ```python
 class EvalScore(BaseModel):  # schemas/eval.py
     model_id: ModelID
-    bert_score_f1: float | None   # None if no reference_output provided
+    bert_score_f1: float | None  # None if no reference_output provided
     rouge_l: float | None
     latency_ms: float
     token_count: int
     estimated_cost_usd: float
     hallucination_score: float | None  # None unless FeatureFlag.HALLUCINATION_CHECK active
-    llm_judge_score: float | None      # None unless FeatureFlag.LLM_AS_JUDGE active
+    llm_judge_score: float | None  # None unless FeatureFlag.LLM_AS_JUDGE active
 ```
 
 ## Adding a New Scorer

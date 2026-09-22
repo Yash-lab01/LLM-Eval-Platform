@@ -9,11 +9,12 @@ Every project that plugs into this platform sends a **consumer config** (Pydanti
 ```python
 # Example: AI Terminal Agent connecting to eval platform
 class EvalConsumerConfig(BaseModel):
-    consumer_id: str                        # "ai-terminal-agent"
-    features: list[FeatureFlag]             # what to activate
-    models: list[str]                       # which LLMs to use
-    task_type: TaskType                     # what kind of task
-    scoring_metrics: list[ScoringMetric]    # which metrics to compute
+    consumer_id: str  # "ai-terminal-agent"
+    features: list[FeatureFlag]  # what to activate
+    models: list[str]  # which LLMs to use
+    task_type: TaskType  # what kind of task
+    scoring_metrics: list[ScoringMetric]  # which metrics to compute
+
 
 # Terminal Agent only needs basic scoring + observability
 config = EvalConsumerConfig(
@@ -21,7 +22,7 @@ config = EvalConsumerConfig(
     features=[FeatureFlag.BASIC_SCORING, FeatureFlag.OBSERVABILITY],
     models=["gemini-flash", "groq-llama"],
     task_type=TaskType.CODE_GENERATION,
-    scoring_metrics=[ScoringMetric.BERT_SCORE, ScoringMetric.LATENCY]
+    scoring_metrics=[ScoringMetric.BERT_SCORE, ScoringMetric.LATENCY],
 )
 ```
 
@@ -56,7 +57,8 @@ class PromptRunRequest(BaseModel):
     task_type: TaskType
     models: list[ModelID]
     consumer_config: EvalConsumerConfig
-    reference_output: str | None = None     # for scoring
+    reference_output: str | None = None  # for scoring
+
 
 class ModelResponse(BaseModel):
     model_id: ModelID
@@ -119,6 +121,7 @@ class EvalScore(BaseModel):
     token_count: int
     estimated_cost_usd: float
 
+
 class EvalRunResult(BaseModel):
     run_id: UUID
     prompt: str
@@ -158,7 +161,7 @@ class TaskType(str, Enum):
     CREATIVE_WRITING = "creative_writing"
     CLASSIFICATION = "classification"
     TRANSLATION = "translation"
-    RAG_RESPONSE = "rag_response"          # for RAG eval mode
+    RAG_RESPONSE = "rag_response"  # for RAG eval mode
     COMMAND_GENERATION = "command_generation"  # for terminal agent
 ```
 
@@ -219,33 +222,23 @@ class TaskType(str, Enum):
 ```python
 @mcp_server.tool()
 async def run_eval(
-    prompt: str,
-    task_type: str,
-    models: list[str],
-    consumer_id: str,
-    features: list[str]
+    prompt: str, task_type: str, models: list[str], consumer_id: str, features: list[str]
 ) -> EvalRunResult:
     """Run a prompt across specified LLMs and return scored results."""
 
+
 @mcp_server.tool()
-async def get_best_model(
-    task_type: str,
-    metric: str = "bert_score"
-) -> ModelRecommendation:
+async def get_best_model(task_type: str, metric: str = "bert_score") -> ModelRecommendation:
     """Get the best-performing model for a given task type based on history."""
 
-@mcp_server.tool()
-async def get_eval_history(
-    consumer_id: str,
-    limit: int = 20
-) -> list[EvalRunSummary]:
-    """Get recent eval history for a specific consumer project."""
 
 @mcp_server.tool()
-async def compare_runs(
-    run_id_a: str,
-    run_id_b: str
-) -> RunComparison:
+async def get_eval_history(consumer_id: str, limit: int = 20) -> list[EvalRunSummary]:
+    """Get recent eval history for a specific consumer project."""
+
+
+@mcp_server.tool()
+async def compare_runs(run_id_a: str, run_id_b: str) -> RunComparison:
     """Compare two eval runs side by side."""
 ```
 

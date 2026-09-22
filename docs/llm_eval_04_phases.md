@@ -132,9 +132,13 @@ CREATE INDEX idx_eval_scores_model ON eval_scores(model_id);
 ```python
 # Parallel runner
 async def run_parallel_eval(run_id, request):
-    await asyncio.gather(*[call_model_stream(run_id, m, request.prompt) for m in request.models], return_exceptions=True)
+    await asyncio.gather(
+        *[call_model_stream(run_id, m, request.prompt) for m in request.models],
+        return_exceptions=True,
+    )
     await score_all_responses(run_id, request.reference_output)
     await update_run_status(run_id, "completed")
+
 
 # WebSocket cleanup (CRITICAL — prevents Redis memory leak)
 @app.websocket("/ws/eval/{run_id}")
@@ -152,8 +156,16 @@ async def ws_eval(ws, run_id):
         await pubsub.unsubscribe()
         await pubsub.aclose()
 
+
 # Celery task with retry
-@celery_app.task(bind=True, max_retries=3, autoretry_for=(litellm.RateLimitError, litellm.Timeout), retry_backoff=True, retry_jitter=True, queue="eval_default")
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    autoretry_for=(litellm.RateLimitError, litellm.Timeout),
+    retry_backoff=True,
+    retry_jitter=True,
+    queue="eval_default",
+)
 def run_eval_task(self, run_id: str): ...
 ```
 

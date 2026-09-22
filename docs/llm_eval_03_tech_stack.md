@@ -58,15 +58,15 @@
 **Free models via LiteLLM**:
 ```python
 SUPPORTED_MODELS = [
-    "gemini/gemini-3.5-flash",          # Google free tier
-    "gemini/gemini-3.8-flash",          # Google free tier
-    "groq/openai/gpt-oss-120b",        # Groq free tier
-    "groq/openai/gpt-oss-20b",         # Groq free tier
-    "groq/qwen/qwen3.8-27b",           # Groq free tier
-    "groq/qwen/qwen3-32b",             # Groq free tier
-    "ollama/llama3.2",                  # Local — free
-    "ollama/mistral",                   # Local — free
-    "ollama/phi3",                      # Local — free
+    "gemini/gemini-3.5-flash",  # Google free tier
+    "gemini/gemini-3.8-flash",  # Google free tier
+    "groq/openai/gpt-oss-120b",  # Groq free tier
+    "groq/openai/gpt-oss-20b",  # Groq free tier
+    "groq/qwen/qwen3.8-27b",  # Groq free tier
+    "groq/qwen/qwen3-32b",  # Groq free tier
+    "ollama/llama3.2",  # Local — free
+    "ollama/mistral",  # Local — free
+    "ollama/phi3",  # Local — free
 ]
 ```
 

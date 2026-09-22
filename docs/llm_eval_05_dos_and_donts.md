@@ -28,44 +28,49 @@ class PromptRunRequest(BaseModel):
     reference_output: str | None = None
     scoring_metrics: list[ScoringMetric]
 
-    @model_validator(mode='after')
-    def check_reference_required_for_bert(self) -> 'PromptRunRequest':
+    @model_validator(mode="after")
+    def check_reference_required_for_bert(self) -> "PromptRunRequest":
         if ScoringMetric.BERT_SCORE in self.scoring_metrics:
             if self.reference_output is None:
                 raise ValueError("reference_output required for BERTScore")
         return self
 
+
 # Use Field with constraints
 class EvalConsumerConfig(BaseModel):
-    consumer_id: str = Field(min_length=3, max_length=100, pattern=r'^[a-z0-9-]+$')
+    consumer_id: str = Field(min_length=3, max_length=100, pattern=r"^[a-z0-9-]+$")
     models: list[ModelID] = Field(min_length=1, max_length=10)
+
 
 # Use model_config for global settings
 class BaseSchema(BaseModel):
     model_config = ConfigDict(
-        from_attributes=True,     # for SQLAlchemy ORM → Pydantic conversion
+        from_attributes=True,  # for SQLAlchemy ORM → Pydantic conversion
         validate_assignment=True,  # validate on attribute set
-        str_strip_whitespace=True
+        str_strip_whitespace=True,
     )
 ```
 
 ### DON'T
 ```python
 # DON'T use dict() — it's deprecated in v2
-data = my_model.dict()          # WRONG
-data = my_model.model_dump()    # CORRECT
+data = my_model.dict()  # WRONG
+data = my_model.model_dump()  # CORRECT
 
 # DON'T use .parse_obj() — deprecated
-model = MyModel.parse_obj(data)    # WRONG
-model = MyModel.model_validate(data) # CORRECT
+model = MyModel.parse_obj(data)  # WRONG
+model = MyModel.model_validate(data)  # CORRECT
 
 # DON'T use Optional[X] — use X | None instead (Pydantic v2 style)
-field: Optional[str] = None    # Old style
-field: str | None = None       # Correct v2 style
+field: Optional[str] = None  # Old style
+field: str | None = None  # Correct v2 style
+
 
 # DON'T skip validation on config
-class Config:                  # Old v1 style
+class Config:  # Old v1 style
     orm_mode = True
+
+
 # USE:
 model_config = ConfigDict(from_attributes=True)  # v2 style
 ```
@@ -82,10 +87,12 @@ async def run_all_models(prompt: str, models: list[str]) -> list[ModelResponse]:
     results = await asyncio.gather(*tasks, return_exceptions=True)
     return [r for r in results if not isinstance(r, Exception)]
 
+
 # Use async context managers for DB sessions
 async def get_eval_run(run_id: UUID) -> EvalRun | None:
     async with AsyncSession(engine) as session:
         return await session.get(EvalRunORM, run_id)
+
 
 # Use FastAPI lifespan for startup/shutdown
 @asynccontextmanager
@@ -101,14 +108,14 @@ async def lifespan(app: FastAPI):
 ### DON'T
 ```python
 # DON'T use sync LiteLLM calls in async context
-response = litellm.completion(...)   # WRONG — blocks event loop
+response = litellm.completion(...)  # WRONG — blocks event loop
 response = await litellm.acompletion(...)  # CORRECT
 
 # DON'T create a new DB session per query
 # Create a session factory and use dependency injection in FastAPI
 
 # DON'T use time.sleep in async code
-time.sleep(1)           # WRONG
+time.sleep(1)  # WRONG
 await asyncio.sleep(1)  # CORRECT
 ```
 
@@ -120,6 +127,7 @@ await asyncio.sleep(1)  # CORRECT
 ```python
 # Set up LiteLLM once at startup with all callbacks
 import litellm
+
 litellm.callbacks = [LangfuseHandler()]
 litellm.set_verbose = False  # turn off in production
 
@@ -131,8 +139,8 @@ response = await litellm.acompletion(
         "run_id": str(run_id),
         "consumer_id": consumer_id,
         "task_type": task_type,
-        "generation_name": f"eval-{model_id}"
-    }
+        "generation_name": f"eval-{model_id}",
+    },
 )
 
 # Handle model-specific errors gracefully
@@ -148,11 +156,11 @@ except litellm.AuthenticationError:
 ### DON'T
 ```python
 # DON'T use different SDK per model — defeats LiteLLM's purpose
-import google.generativeai as genai   # DON'T do this
-from groq import Groq                  # DON'T do this
+import google.generativeai as genai  # DON'T do this
+from groq import Groq  # DON'T do this
 
 # DON'T ignore the model prefix
-litellm.completion(model="gemini-flash")       # WRONG — model not found
+litellm.completion(model="gemini-flash")  # WRONG — model not found
 litellm.completion(model="gemini/gemini-3.5-flash")  # CORRECT
 ```
 
