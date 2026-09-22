@@ -1,0 +1,138 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: llm_eval_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: llm_eval
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d llm_eval"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: llm_eval_redis
+    restart: unless-stopped
+    command: redis-server --databases 16 --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: llm_eval_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://user:password@postgres:5432/llm_eval
+      REDIS_CACHE_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  mcp:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: llm_eval_mcp
+    restart: unless-stopped
+    command: python -m mcp.server
+    ports:
+      - "8001:8001"
+    environment:
+      MCP_TRANSPORT: http
+      MCP_PORT: "8001"
+      MCP_HOST: "0.0.0.0"
+      BACKEND_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_started
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: llm_eval_worker
+    restart: unless-stopped
+    command: celery -A backend.core.celery_app.celery_app worker --loglevel=info -Q eval_default,eval_batch -c 4
+    environment:
+      DATABASE_URL: postgresql+asyncpg://user:password@postgres:5432/llm_eval
+      REDIS_CACHE_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  flower:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: llm_eval_flower
+    restart: unless-stopped
+    command: celery -A backend.core.celery_app.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      redis:
+        condition: service_healthy
+      worker:
+        condition: service_started
+
+  langfuse:
+    image: langfuse/langfuse:3
+    container_name: llm_eval_langfuse
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres:5432/llm_eval
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: changeme_langfuse_secret_32_chars_min
+      SALT: changeme_salt_32_chars_min_length
+      ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    image: node:20-alpine
+    container_name: llm_eval_frontend
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "if [ -f package.json ]; then npm run dev; else echo 'Frontend scaffolded in Phase 5'; sleep infinity; fi"
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./frontend:/app
+
+volumes:
+  postgres_data:
+  redis_data:
