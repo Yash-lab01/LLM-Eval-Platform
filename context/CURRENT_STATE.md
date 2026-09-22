@@ -1,26 +1,28 @@
-﻿# Current State
+# Current State
 
 Last updated: 2026-09-22
-Current phase: Phase 0 — Pre-Build Setup (NOT STARTED)
+Current phase: Phase 1B — Data Layer + Schemas (NEXT)
 
 ## Current Focus
-Project planning and documentation complete. Ready to begin Phase 0.
+Phase 0 (Pre-Build Setup) and Phase 1A (Infrastructure) complete. Ready to begin Phase 1B (SQLAlchemy models, Pydantic schemas, Alembic Migration 001).
 
 ## Completed
 - [x] All 5 docs written in /docs/
-- [x] PROJECT_GUIDE.md updated with project-specific details
+- [x] PROJECT_GUIDE.md updated with project-specific details and current model roster (Gemini 3.5+, Groq GPT-OSS/Qwen)
 - [x] Phases reviewed and expanded to 10 phases
 - [x] context/ folder created
+- [x] Phase 0 complete: Project directories created, isolated `.venv` with Python 3.12, Poetry, Ruff, Pre-commit installed locally (zero global installs)
+- [x] Phase 1A complete: `.env.example`, `docker-compose.yml` (8 services), `docker-compose.override.yml`, `gunicorn.conf.py`, `backend/core/config.py` (Pydantic-settings), `backend/main.py` (`GET /health`), pytest unit test passing
 
 ## In Progress
-- Nothing yet — code has not been written
+- Transitioning to Phase 1B (Data Layer + Schemas)
 
 ## Phase Status
 | Phase | Status |
 |---|---|
-| Phase 0: Pre-Build Setup | Not started |
-| Phase 1A: Infrastructure | Not started |
-| Phase 1B: Data Layer + Schemas | Not started |
+| Phase 0: Pre-Build Setup | Complete |
+| Phase 1A: Infrastructure | Complete |
+| Phase 1B: Data Layer + Schemas | Next |
 | Phase 2: Core Eval Engine | Not started |
 | Phase 3: Scoring + Feature Router | Not started |
 | Phase 4: Observability + MCP | Not started |
@@ -31,11 +33,10 @@ Project planning and documentation complete. Ready to begin Phase 0.
 | Phase 8: Portfolio Polish | Not started |
 
 ## Known Problems
-None yet — project not started.
+None. Docker daemon offline on host (expected until Docker Desktop is started for container execution).
 
 ## Next Task
-Phase 0: Install Python 3.12, Poetry, Docker Desktop, Node.js 20.
-Get Gemini free API key and Groq free API key.
+Phase 1B: Implement SQLAlchemy async models, Pydantic v2 schemas (`backend/schemas/`), Alembic Migration 001, seed data script, and schema tests.
 
 ## Do Not Change
 - ModelID enum values (LiteLLM prefix format must match exactly)
