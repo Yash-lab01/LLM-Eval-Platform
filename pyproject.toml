@@ -1,0 +1,89 @@
+[tool.poetry]
+name = "llm-eval-platform"
+version = "0.1.0"
+description = "Modular, self-hosted LLM evaluation and benchmarking platform"
+authors = ["Antigravity Developer <dev@example.com>"]
+readme = "README.md"
+packages = [
+    { include = "backend" },
+    { include = "mcp" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+# Core Framework
+fastapi = "^0.115.0"
+pydantic = "^2.10.0"
+pydantic-settings = "^2.6.0"
+uvicorn = {extras = ["standard"], version = "^0.32.0"}
+gunicorn = "^23.0.0"
+
+# Database & Migrations
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
+asyncpg = "^0.30.0"
+alembic = "^1.14.0"
+
+# Queue, Cache & Pub/Sub
+celery = {extras = ["redis"], version = "^5.4.0"}
+redis = {extras = ["hiredis"], version = "^5.2.0"}
+flower = "^2.0.1"
+
+# LLM Gateway & Observability
+litellm = "^1.52.0"
+langfuse = "^3.0.0"
+
+# AI/ML & Scoring (PyTorch)
+torch = ">=2.2.0"
+bert-score = "^0.3.13"
+sentence-transformers = "^3.3.0"
+transformers = "^4.46.0"
+rouge-score = "^0.1.2"
+umap-learn = "^0.5.7"
+
+# MCP Server
+mcp = "^1.1.0"
+fastmcp = "^0.4.0"
+
+# Utilities
+httpx = "^0.28.0"
+python-multipart = "^0.0.19"
+jinja2 = "^3.1.4"
+pandas = "^2.2.3"
+weasyprint = "^63.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+pytest-mock = "^3.14.0"
+ruff = "^0.8.0"
+pre-commit = "^4.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["backend/tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["backend", "mcp"]
