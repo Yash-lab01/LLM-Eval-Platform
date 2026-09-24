@@ -11,10 +11,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes.eval import router as eval_router
+from backend.api.routes.leaderboard import router as leaderboard_router
 from backend.api.routes.websocket import router as websocket_router
 from backend.core.config import settings
 from backend.core.database import check_db_health, engine
 from backend.core.redis_client import check_redis_health, close_redis
+from backend.services.scoring import close_scoring_models, init_scoring_models
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +28,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup checks
     db_ok = await check_db_health()
     redis_ok = await check_redis_health()
+    init_scoring_models()
     logger.info(f"Service health on startup: DB={db_ok}, Redis={redis_ok}")
 
     yield
 
     # Shutdown cleanup
     logger.info("Shutting down LLM Eval Platform services...")
+    close_scoring_models()
     await close_redis()
     await engine.dispose()
     logger.info("All connections closed cleanly.")
@@ -58,6 +62,7 @@ app.add_middleware(
 
 # Mount Routes
 app.include_router(eval_router, prefix="/api/v1")
+app.include_router(leaderboard_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 
