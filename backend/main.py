@@ -1,23 +1,40 @@
 """FastAPI Main Application Entrypoint.
 
-Configures lifespan events, CORS middleware, and core endpoints.
+Configures lifespan events, CORS middleware, API routes, and system health checks.
 """
 
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.routes.eval import router as eval_router
+from backend.api.routes.websocket import router as websocket_router
 from backend.core.config import settings
+from backend.core.database import check_db_health, engine
+from backend.core.redis_client import check_redis_health, close_redis
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan context manager for startup and shutdown events."""
-    # Startup: resources, connections, singletons
+    logger.info("Initializing LLM Eval Platform services...")
+    # Startup checks
+    db_ok = await check_db_health()
+    redis_ok = await check_redis_health()
+    logger.info(f"Service health on startup: DB={db_ok}, Redis={redis_ok}")
+
     yield
-    # Shutdown: clean close of connections
+
+    # Shutdown cleanup
+    logger.info("Shutting down LLM Eval Platform services...")
+    await close_redis()
+    await engine.dispose()
+    logger.info("All connections closed cleanly.")
 
 
 app = FastAPI(
@@ -39,12 +56,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount Routes
+app.include_router(eval_router, prefix="/api/v1")
+app.include_router(websocket_router)
+
 
 @app.get("/health", tags=["System"])
-async def health_check() -> dict[str, str]:
-    """Health check endpoint to verify backend service liveness."""
+async def health_check() -> dict:
+    """Comprehensive health check endpoint verifying database and Redis connectivity."""
+    db_status = await check_db_health()
+    redis_status = await check_redis_health()
+    all_healthy = db_status and redis_status
+
     return {
-        "status": "healthy",
+        "status": "healthy" if all_healthy else "degraded",
         "environment": settings.environment,
         "service": "llm-eval-api",
+        "components": {
+            "database": "connected" if db_status else "disconnected",
+            "redis": "connected" if redis_status else "disconnected",
+        },
     }
