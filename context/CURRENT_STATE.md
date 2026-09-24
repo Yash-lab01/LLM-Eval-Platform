@@ -1,10 +1,10 @@
 # Current State
 
-Last updated: 2026-09-23
-Current phase: Phase 2 — Core Eval Engine (NEXT)
+Last updated: 2026-09-24
+Current phase: Phase 3 — Scoring + Feature Router (NEXT)
 
 ## Current Focus
-Phase 1B (Data Layer + Schemas) complete. Ready to begin Phase 2 (LiteLLM client, parallel runner with asyncio.gather, Celery eval tasks, WebSocket handler, and POST /eval/run).
+Phase 2 (Core Eval Engine) complete. Ready to begin Phase 3 (PyTorch BERTScore and sentence-transformer startup loading, scoring service, Feature Router middleware, and Leaderboard aggregation with Redis cache).
 
 ## Completed
 - [x] All 5 docs written in /docs/
@@ -14,9 +14,10 @@ Phase 1B (Data Layer + Schemas) complete. Ready to begin Phase 2 (LiteLLM client
 - [x] Phase 0 complete: Project directories created, isolated `.venv` with Python 3.12, Poetry, Ruff, Pre-commit installed locally (zero global installs)
 - [x] Phase 1A complete: `.env.example`, `docker-compose.yml` (8 services), `docker-compose.override.yml`, `gunicorn.conf.py`, `backend/core/config.py` (Pydantic-settings), `backend/main.py` (`GET /health`), pytest unit test passing
 - [x] Phase 1B complete: All Pydantic v2 schemas in `backend/schemas/`, SQLAlchemy async engine + ORM models (5 tables with UUID keys and indexes), Alembic Migration 001, seed data script, and 12 unit tests passing cleanly
+- [x] Phase 2 complete: LiteLLM streaming wrapper with backoff retry, parallel runner with asyncio.gather, Redis pub/sub token broadcasting, memory-safe WebSocket endpoint (`/ws/eval/{run_id}`), Celery worker task (`eval_default`), REST API (`POST /api/v1/eval/run`, `GET /api/v1/eval/{run_id}`, history list), API key auth dependency, and 19 unit/integration tests passing cleanly
 
 ## In Progress
-- Transitioning to Phase 2 (Core Eval Engine)
+- Transitioning to Phase 3 (Scoring + Feature Router)
 
 ## Phase Status
 | Phase | Status |
@@ -24,8 +25,8 @@ Phase 1B (Data Layer + Schemas) complete. Ready to begin Phase 2 (LiteLLM client
 | Phase 0: Pre-Build Setup | Complete |
 | Phase 1A: Infrastructure | Complete |
 | Phase 1B: Data Layer + Schemas | Complete |
-| Phase 2: Core Eval Engine | Next |
-| Phase 3: Scoring + Feature Router | Not started |
+| Phase 2: Core Eval Engine | Complete |
+| Phase 3: Scoring + Feature Router | Next |
 | Phase 4: Observability + MCP | Not started |
 | Phase 5: Frontend | Not started |
 | Phase 6: Testing + Hardening | Not started |
@@ -37,7 +38,7 @@ Phase 1B (Data Layer + Schemas) complete. Ready to begin Phase 2 (LiteLLM client
 None.
 
 ## Next Task
-Phase 2: Implement LiteLLM wrapper (`services/litellm_client.py`), parallel runner (`services/eval_runner.py`), Celery eval task (`tasks/eval_tasks.py`), WebSocket handler (`/ws/eval/{run_id}`), and REST endpoints (`POST /api/v1/eval/run`).
+Phase 3: Load PyTorch models at startup (lifespan), implement `services/scoring.py` (BERTScore via run_in_executor, ROUGE-L, cost calculation), `middleware/feature_router.py` (FeatureRouter class gating all metrics), Leaderboard aggregation SQL + Redis cache (TTL 5m), and GET /api/v1/leaderboard.
 
 ## Do Not Change
 - ModelID enum values (LiteLLM prefix format must match exactly)
