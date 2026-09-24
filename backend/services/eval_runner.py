@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.database import AsyncSessionFactory
 from backend.core.redis_client import get_redis_client, run_status_channel, run_token_channel
+from backend.middleware.feature_router import FeatureRouter
 from backend.models.eval import EvalRun, ModelResponseORM
 from backend.schemas.eval import (
     EvalRunResult,
@@ -24,7 +25,9 @@ from backend.schemas.eval import (
     PromptRunRequest,
 )
 from backend.schemas.models import ModelID
+from backend.services.leaderboard import invalidate_leaderboard_cache
 from backend.services.litellm_client import stream_model_completion
+from backend.services.scoring import score_run_responses
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +185,21 @@ async def run_parallel_eval(
                 )
             db.add(orm_resp)
 
-        # 3. Mark run as completed
+        # 3. Automated Scoring (Phase 3)
+        router = FeatureRouter(request.consumer_config)
+        scores, winner = await score_run_responses(
+            run_id=run_id,
+            task_type=request.task_type,
+            reference_output=request.reference_output,
+            responses=responses,
+            router=router,
+            session=db,
+        )
+
+        # Invalidate leaderboard cache for this task category
+        await invalidate_leaderboard_cache(request.task_type)
+
+        # 4. Mark run as completed
         completed_at = datetime.now(UTC)
         await db.execute(
             update(EvalRun)
@@ -214,8 +231,8 @@ async def run_parallel_eval(
             models=request.models,
             status="completed",
             responses=responses,
-            scores=[],  # Computed in Phase 3
-            winner=None,
+            scores=scores,
+            winner=winner,
             created_at=run_record.created_at,
             completed_at=completed_at,
         )
