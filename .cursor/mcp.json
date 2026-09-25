@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "llm-eval": {
+      "command": "python",
+      "args": ["-m", "mcp.eval_server"],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    },
+    "llm-eval-http": {
+      "url": "http://localhost:8001/sse"
+    }
+  }
+}

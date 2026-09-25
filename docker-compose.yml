@@ -58,7 +58,7 @@ services:
       dockerfile: backend/Dockerfile
     container_name: llm_eval_mcp
     restart: unless-stopped
-    command: python -m mcp.server
+    command: python -m mcp.eval_server
     ports:
       - "8001:8001"
     environment:
