@@ -27,6 +27,7 @@ from backend.schemas.eval import (
 from backend.schemas.models import ModelID
 from backend.services.leaderboard import invalidate_leaderboard_cache
 from backend.services.litellm_client import stream_model_completion
+from backend.services.observability import build_trace_metadata
 from backend.services.scoring import score_run_responses
 
 logger = logging.getLogger(__name__)
@@ -127,17 +128,17 @@ async def run_parallel_eval(
             logger.debug(f"Status publish failed: {exc}")
 
         # 2. Launch parallel tasks using asyncio.gather
-        meta = {
-            "task_type": request.task_type.value,
-            "consumer_id": request.consumer_id or "",
-        }
-
         tasks = [
             _stream_and_publish_model(
                 run_id=run_id,
                 model_id=model,
                 prompt=request.prompt,
-                metadata=meta,
+                metadata=build_trace_metadata(
+                    run_id=run_id,
+                    model_id=model.value,
+                    task_type=request.task_type.value,
+                    consumer_id=request.consumer_id,
+                ),
             )
             for model in request.models
         ]

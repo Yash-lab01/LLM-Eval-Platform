@@ -16,6 +16,7 @@ from backend.api.routes.websocket import router as websocket_router
 from backend.core.config import settings
 from backend.core.database import check_db_health, engine
 from backend.core.redis_client import check_redis_health, close_redis
+from backend.services.observability import setup_observability
 from backend.services.scoring import close_scoring_models, init_scoring_models
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     db_ok = await check_db_health()
     redis_ok = await check_redis_health()
     init_scoring_models()
+    setup_observability()
     logger.info(f"Service health on startup: DB={db_ok}, Redis={redis_ok}")
 
     yield

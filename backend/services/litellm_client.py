@@ -13,6 +13,7 @@ from typing import Any
 import litellm
 
 from backend.core.config import settings
+from backend.services.observability import setup_observability
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,9 @@ if settings.gemini_api_key:
     os.environ["GEMINI_API_KEY"] = settings.gemini_api_key
 if settings.groq_api_key:
     os.environ["GROQ_API_KEY"] = settings.groq_api_key
+
+# Initialize Langfuse telemetry if credentials present
+setup_observability()
 
 # Disable verbose telemetry in production
 litellm.set_verbose = settings.environment == "development"
