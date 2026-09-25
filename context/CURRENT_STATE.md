@@ -1,10 +1,10 @@
 # Current State
 
-Last updated: 2026-09-24
-Current phase: Phase 4 — Observability + MCP (NEXT)
+Last updated: 2026-09-25
+Current phase: Phase 5 — Frontend (NEXT)
 
 ## Current Focus
-Phase 3 (Scoring + Feature Router + Leaderboard) complete with 36/36 tests passing. Ready to begin Phase 4 (Langfuse observability integration, trace wrapping, FastMCP server with eval tools, and MCP docker compose integration).
+Phase 4 (Observability + MCP) complete with 48/48 tests passing. Ready to begin Phase 5 (Next.js 15 UI, TypeScript generation, real-time WebSocket token routing, and Leaderboard dashboard).
 
 ## Completed
 - [x] All 5 docs written in /docs/
@@ -16,9 +16,10 @@ Phase 3 (Scoring + Feature Router + Leaderboard) complete with 36/36 tests passi
 - [x] Phase 1B complete: All Pydantic v2 schemas in `backend/schemas/`, SQLAlchemy async engine + ORM models (5 tables with UUID keys and indexes), Alembic Migration 001, seed data script, and 12 unit tests passing cleanly
 - [x] Phase 2 complete: LiteLLM streaming wrapper with backoff retry, parallel runner with asyncio.gather, Redis pub/sub token broadcasting, memory-safe WebSocket endpoint (`/ws/eval/{run_id}`), Celery worker task (`eval_default`), REST API (`POST /api/v1/eval/run`, `GET /api/v1/eval/{run_id}`, history list), API key auth dependency, and 19 unit/integration tests passing cleanly
 - [x] Phase 3 complete: FeatureRouter middleware gating metrics based on consumer config, non-blocking PyTorch BERTScore execution via `run_in_executor`, ROUGE-L similarity, latency/cost evaluation, ORM persistence, dynamic winner determination, Leaderboard SQL aggregation with win rate calculation, Redis caching (TTL 300s), `GET /api/v1/leaderboard`, and `GET /api/v1/models/recommend` endpoints. 36 unit/integration tests passing cleanly.
+- [x] Phase 4 complete: Langfuse telemetry callback integration in LiteLLM, standardized session and trace metadata injection, `compare_eval_runs` service and `GET /api/v1/eval/compare` REST endpoint, FastMCP server (`mcp.eval_server`) exposing 5 tools (`health_check`, `run_eval`, `get_best_model`, `get_eval_history`, `compare_runs`) supporting dual stdio/SSE transports, `.cursor/mcp.json` client configuration, and docker-compose integration. 48 unit/integration tests passing cleanly.
 
 ## In Progress
-- Transitioning to Phase 4 (Observability + MCP)
+- Transitioning to Phase 5 (Frontend)
 
 ## Phase Status
 | Phase | Status |
@@ -28,8 +29,8 @@ Phase 3 (Scoring + Feature Router + Leaderboard) complete with 36/36 tests passi
 | Phase 1B: Data Layer + Schemas | Complete |
 | Phase 2: Core Eval Engine | Complete |
 | Phase 3: Scoring + Feature Router | Complete |
-| Phase 4: Observability + MCP | Next |
-| Phase 5: Frontend | Not started |
+| Phase 4: Observability + MCP | Complete |
+| Phase 5: Frontend | Next |
 | Phase 6: Testing + Hardening | Not started |
 | Phase 7A: Extra Features Core | Not started |
 | Phase 7B: Extra Features Advanced | Not started |
@@ -39,7 +40,7 @@ Phase 3 (Scoring + Feature Router + Leaderboard) complete with 36/36 tests passi
 None.
 
 ## Next Task
-Phase 4: Observability + MCP — Integrate Langfuse tracing into LiteLLM calls and scoring, wrap evaluation pipeline in traces, implement FastMCP server (`mcp/`) exposing tools (`run_eval`, `get_leaderboard`, `recommend_model`), and configure MCP container.
+Phase 5: Frontend — Next.js 15 app with TypeScript, Tailwind CSS, shadcn/ui components, Pydantic-to-TypeScript type generation script (`scripts/generate_types.py`), real-time WebSocket token streaming, run details, prompt library, and leaderboard radar/table visualizations.
 
 ## Do Not Change
 - ModelID enum values (LiteLLM prefix format must match exactly)
