@@ -20,9 +20,11 @@ from backend.schemas.eval import (
     EvalRunSummary,
     ModelResponseSchema,
     PromptRunRequest,
+    RunComparison,
 )
 from backend.schemas.models import ModelID
 from backend.services.eval_runner import run_parallel_eval
+from backend.services.run_comparison import compare_eval_runs
 from backend.tasks.eval_tasks import run_eval_task
 
 logger = logging.getLogger(__name__)
@@ -79,6 +81,23 @@ async def create_eval_run(
         "models": [m.value for m in request.models],
         "stream_url": f"/ws/eval/{run_id}",
     }
+
+
+@router.get(
+    "/compare",
+    response_model=RunComparison,
+    summary="Compare metric differences between two evaluation runs",
+)
+async def compare_runs_endpoint(
+    run_id_a: Annotated[UUID, Query(description="First evaluation run ID to compare")],
+    run_id_b: Annotated[UUID, Query(description="Second evaluation run ID to compare")],
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> RunComparison:
+    """Compute score deltas between two evaluation runs for shared models."""
+    try:
+        return await compare_eval_runs(run_id_a=run_id_a, run_id_b=run_id_b, session=db)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
 @router.get(
