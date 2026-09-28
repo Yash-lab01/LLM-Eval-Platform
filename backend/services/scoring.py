@@ -129,8 +129,8 @@ def determine_winner(
 ) -> ModelID | None:
     """Determine the winning model based on composite quality and latency performance.
 
-    If semantic scores (BERTScore/ROUGE-L) exist, models are ranked by quality with
-    latency as tiebreaker. If semantic scores are absent, lowest latency wins.
+    If semantic scores (BERTScore/ROUGE-L/LLM Judge) exist, models are ranked by quality with
+    latency as tiebreaker. If quality scores are absent, lowest latency wins.
     """
     if not responses or not scores:
         return None
@@ -138,7 +138,10 @@ def determine_winner(
     score_by_model = {s.model_id: s for s in scores}
     candidates: list[tuple[ModelID, float]] = []
 
-    has_semantic_eval = any(s.bert_score_f1 is not None or s.rouge_l is not None for s in scores)
+    has_quality_eval = any(
+        s.bert_score_f1 is not None or s.rouge_l is not None or s.llm_judge_score is not None
+        for s in scores
+    )
 
     for resp in responses:
         if resp.finish_reason == "error" or not resp.output.strip():
@@ -148,12 +151,26 @@ def determine_winner(
         if not model_score:
             continue
 
-        if has_semantic_eval:
-            quality = 0.0
+        if has_quality_eval:
+            quality_parts = []
+            weights = []
+
             if model_score.bert_score_f1 is not None:
-                quality += model_score.bert_score_f1 * 0.7
+                quality_parts.append(model_score.bert_score_f1)
+                weights.append(0.5 if model_score.llm_judge_score is not None else 0.7)
+
             if model_score.rouge_l is not None:
-                quality += model_score.rouge_l * 0.3
+                quality_parts.append(model_score.rouge_l)
+                weights.append(0.2 if model_score.llm_judge_score is not None else 0.3)
+
+            if model_score.llm_judge_score is not None:
+                quality_parts.append(model_score.llm_judge_score)
+                weights.append(0.5 if (model_score.bert_score_f1 or model_score.rouge_l) else 1.0)
+
+            total_weight = sum(weights) if weights else 1.0
+            quality = (
+                sum(p * w for p, w in zip(quality_parts, weights, strict=False)) / total_weight
+            )
 
             # Modulate slightly by latency (faster response gains marginal advantage)
             speed_factor = 1.0 / (1.0 + (resp.latency_ms / 5000.0))
@@ -178,6 +195,7 @@ async def score_run_responses(
     responses: list[ModelResponseSchema],
     router: FeatureRouter,
     session: AsyncSession,
+    prompt: str | None = None,
 ) -> tuple[list[EvalScoreSchema], ModelID | None]:
     """Calculate scores for all model responses in a run and persist them to PostgreSQL."""
     scores: list[EvalScoreSchema] = []
@@ -188,12 +206,32 @@ async def score_run_responses(
     for resp in responses:
         bert_f1: float | None = None
         rouge_l_val: float | None = None
+        llm_judge_val: float | None = None
 
         if router.should_score_bert(reference_output) and reference_output:
             bert_f1 = await compute_bert_score(resp.output, reference_output)
 
         if router.should_score_rouge(reference_output) and reference_output:
             rouge_l_val = compute_rouge_l(resp.output, reference_output)
+
+        if (
+            router.should_judge_llm()
+            and prompt
+            and resp.finish_reason != "error"
+            and resp.output.strip()
+        ):
+            try:
+                from backend.services.llm_judge import evaluate_with_llm_judge
+
+                judge_res = await evaluate_with_llm_judge(
+                    prompt=prompt,
+                    candidate_output=resp.output,
+                    task_type=task_type,
+                    reference_output=reference_output,
+                )
+                llm_judge_val = judge_res.overall_score
+            except Exception as exc:
+                logger.warning(f"LLM Judge scoring failed for {resp.model_id}: {exc}")
 
         cost = (
             compute_cost_estimate(resp.model_id.value, resp.token_count)
@@ -209,7 +247,7 @@ async def score_run_responses(
             token_count=resp.token_count,
             estimated_cost_usd=cost,
             hallucination_score=None,
-            llm_judge_score=None,
+            llm_judge_score=llm_judge_val,
         )
         scores.append(score_schema)
 
@@ -224,7 +262,7 @@ async def score_run_responses(
             token_count=resp.token_count,
             estimated_cost_usd=cost,
             hallucination_score=None,
-            llm_judge_score=None,
+            llm_judge_score=llm_judge_val,
         )
         session.add(orm_score)
 

@@ -186,7 +186,7 @@ async def run_parallel_eval(
                 )
             db.add(orm_resp)
 
-        # 3. Automated Scoring (Phase 3)
+        # 3. Automated Scoring (Phase 3 & Phase 7)
         router = FeatureRouter(request.consumer_config)
         scores, winner = await score_run_responses(
             run_id=run_id,
@@ -195,6 +195,7 @@ async def run_parallel_eval(
             responses=responses,
             router=router,
             session=db,
+            prompt=request.prompt,
         )
 
         # Invalidate leaderboard cache for this task category
