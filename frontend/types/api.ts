@@ -173,3 +173,149 @@ export interface StreamTokenEvent {
   finish_reason?: string;
   is_final: boolean;
 }
+
+// Rubrics & LLM-as-Judge
+export interface RubricCriterion {
+  name: string;
+  weight: number;
+  description: string;
+}
+
+export interface RubricSchema {
+  task_type: TaskType;
+  title: string;
+  description?: string | null;
+  criteria: RubricCriterion[];
+}
+
+export interface JudgeEvaluationScore {
+  criterion_scores: Record<string, number>;
+  overall_score: number;
+  reasoning: string;
+}
+
+export interface JudgeEvaluationRequest {
+  prompt: string;
+  model_output: string;
+  task_type?: TaskType;
+  reference_output?: string | null;
+  custom_rubric?: RubricSchema | null;
+}
+
+// Batch Evaluation
+export interface BatchPromptItem {
+  id?: string;
+  prompt: string;
+  reference_output?: string | null;
+}
+
+export interface BatchUploadRequest {
+  items: BatchPromptItem[];
+  models: ModelID[];
+  task_type?: TaskType;
+  consumer_id?: string | null;
+}
+
+export interface BatchItemResult {
+  item_id: string;
+  prompt: string;
+  reference_output?: string | null;
+  run_id?: string | null;
+  winner?: string | null;
+  scores: Record<string, any>[];
+  status: string;
+  error_message?: string | null;
+}
+
+export interface BatchStatusResponse {
+  batch_id: string;
+  status: string;
+  task_type: TaskType;
+  models: ModelID[];
+  total_items: number;
+  completed_items: number;
+  failed_items: number;
+  created_at: string;
+  completed_at?: string | null;
+}
+
+export interface BatchResultsResponse {
+  batch_id: string;
+  status: string;
+  total_items: number;
+  completed_items: number;
+  failed_items: number;
+  results: BatchItemResult[];
+}
+
+// Regression Testing Suites
+export interface SuitePromptItem {
+  id?: string;
+  prompt: string;
+  reference_output?: string | null;
+}
+
+export interface PromptSuiteCreate {
+  name: string;
+  description?: string | null;
+  task_type?: TaskType;
+  prompts: SuitePromptItem[];
+}
+
+export interface PromptSuiteSchema {
+  id: string;
+  name: string;
+  description?: string | null;
+  task_type: TaskType;
+  prompts: SuitePromptItem[];
+  created_at: string;
+}
+
+export interface SuiteRunRequest {
+  models: ModelID[];
+  consumer_id?: string | null;
+}
+
+export interface SuiteRunItemScore {
+  prompt_id: string;
+  prompt: string;
+  model_id: ModelID;
+  bert_score_f1?: number | null;
+  rouge_l?: number | null;
+  llm_judge_score?: number | null;
+  latency_ms: number;
+}
+
+export interface SuiteRunRecord {
+  run_id: string;
+  suite_id: string;
+  models: ModelID[];
+  timestamp: string;
+  item_scores: SuiteRunItemScore[];
+}
+
+export interface MetricDelta {
+  baseline?: number | null;
+  candidate?: number | null;
+  delta: number;
+}
+
+export interface PromptRegressionDelta {
+  prompt_id: string;
+  prompt: string;
+  model_id: ModelID;
+  metrics: Record<string, MetricDelta>;
+  status: "improved" | "degraded" | "unchanged";
+}
+
+export interface RegressionReport {
+  suite_id: string;
+  baseline_run_id: string;
+  candidate_run_id: string;
+  total_prompts: number;
+  improved_count: number;
+  degraded_count: number;
+  unchanged_count: number;
+  net_quality_delta: number;
+  deltas: PromptRegressionDelta[];
+}
