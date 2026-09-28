@@ -1,10 +1,10 @@
 # Current State
 
-Last updated: 2026-09-25
-Current phase: Phase 6 — Testing + Hardening (NEXT)
+Last updated: 2026-09-28
+Current phase: Phase 7A — Extra Features Core (NEXT)
 
 ## Current Focus
-Phase 5 (Frontend) complete with Next.js 15, TypeScript, Tailwind CSS, Zustand, and real-time WebSocket streaming. Ready to begin Phase 6 (End-to-End Testing, Chaos/Failure Hardening, and Load Testing).
+Phase 6 (Testing + Security Hardening) complete with 77/77 tests passing (94% coverage). Ready to begin Phase 7A (Batch Eval, LLM-as-Judge G-eval scoring, Custom Rubrics, and Regression Test suites).
 
 ## Completed
 - [x] All 5 docs written in /docs/
@@ -18,9 +18,18 @@ Phase 5 (Frontend) complete with Next.js 15, TypeScript, Tailwind CSS, Zustand, 
 - [x] Phase 3 complete: FeatureRouter middleware gating metrics based on consumer config, non-blocking PyTorch BERTScore execution via `run_in_executor`, ROUGE-L similarity, latency/cost evaluation, ORM persistence, dynamic winner determination, Leaderboard SQL aggregation with win rate calculation, Redis caching (TTL 300s), `GET /api/v1/leaderboard`, and `GET /api/v1/models/recommend` endpoints. 36 unit/integration tests passing cleanly.
 - [x] Phase 4 complete: Langfuse telemetry callback integration in LiteLLM, standardized session and trace metadata injection, `compare_eval_runs` service and `GET /api/v1/eval/compare` REST endpoint, FastMCP server (`mcp.eval_server`) exposing 5 tools (`health_check`, `run_eval`, `get_best_model`, `get_eval_history`, `compare_runs`) supporting dual stdio/SSE transports, `.cursor/mcp.json` client configuration, and docker-compose integration. 48 unit/integration tests passing cleanly.
 - [x] Phase 5 complete: Next.js 15 UI with TypeScript, Tailwind CSS, and App Router. Auto-generated TypeScript types (`scripts/generate_types.py` -> `frontend/types/api.ts`). Zustand global state (`lib/store.ts`), memory-safe WebSocket streaming subscriber (`lib/websocket.ts`), type-safe backend API fetchers (`lib/api.ts`). Responsive dark-themed navigation sidebar and header. 5 complete pages: Dashboard (`/`), Eval Runner (`/eval/new`), Run Detail Report (`/eval/[run_id]`), Model Leaderboard (`/leaderboard`) with Recharts bar chart & model recommendation oracle, Eval History (`/history`) with 2-run delta comparison modal, and Prompt Benchmark Library (`/prompts`). Production build passes with 0 errors.
+- [x] Phase 6 complete: Testing + Security Hardening:
+  - SlowAPI rate limiting integrated with custom key resolver (`get_rate_limit_key`), resilient in-memory fallback, and custom 429 response handler (`backend/core/limiter.py`).
+  - Strict payload size constraints (`max_length=50000` on prompt & reference output in `backend/schemas/eval.py`) preventing DOS abuse.
+  - WebSocket full integration & lifecycle test with memory-safe cleanup (`punsubscribe` + `aclose` in finally block).
+  - Celery eager execution test suite (`task_always_eager=True`).
+  - Exhaustive powerset feature flag routing test suite covering all 32 combinations.
+  - Chaos failure injection tests: LiteLLM transient HTTP 429 exponential backoff retry and Ollama timeout resilience.
+  - Security tests: API key SHA-256 hashing, Redis auth caching (3600s TTL), and trace metadata sanitization.
+  - Total test count expanded to 77/77 passing (94% coverage, exceeding 70% requirement).
 
 ## In Progress
-- Transitioning to Phase 6 (Testing + Hardening)
+- Transitioning to Phase 7A (Extra Features Core: Batch Eval, LLM-as-Judge, Custom Rubrics, Regression Testing)
 
 ## Phase Status
 | Phase | Status |
@@ -32,8 +41,8 @@ Phase 5 (Frontend) complete with Next.js 15, TypeScript, Tailwind CSS, Zustand, 
 | Phase 3: Scoring + Feature Router | Complete |
 | Phase 4: Observability + MCP | Complete |
 | Phase 5: Frontend | Complete |
-| Phase 6: Testing + Hardening | Next |
-| Phase 7A: Extra Features Core | Not started |
+| Phase 6: Testing + Hardening | Complete |
+| Phase 7A: Extra Features Core | Next |
 | Phase 7B: Extra Features Advanced | Not started |
 | Phase 8: Portfolio Polish | Not started |
 
@@ -41,7 +50,7 @@ Phase 5 (Frontend) complete with Next.js 15, TypeScript, Tailwind CSS, Zustand, 
 None.
 
 ## Next Task
-Phase 6: Testing + Hardening — comprehensive end-to-end integration tests, mock server failure injection (HTTP 429 backoff, rate limits, Ollama timeout fallbacks), Celery task error recovery, and load/concurrency validation.
+Phase 7A: Extra Features Core — EF-01 Batch Evaluation (CSV/JSON upload, `eval_batch` queue, WebSocket progress, result downloads), EF-02 LLM-as-Judge (Gemini judging models via structured G-eval rubric), EF-03 Custom Rubric Editor, and EF-04 Prompt Suite Regression Testing.
 
 ## Do Not Change
 - ModelID enum values (LiteLLM prefix format must match exactly)
