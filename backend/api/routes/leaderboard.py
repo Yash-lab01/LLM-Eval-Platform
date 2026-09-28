@@ -3,10 +3,11 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.database import get_db
+from backend.core.limiter import limiter
 from backend.schemas.consumers import ScoringMetric, TaskType
 from backend.schemas.leaderboard import (
     LeaderboardResponse,
@@ -27,7 +28,9 @@ router = APIRouter(tags=["Leaderboard"])
     response_model=LeaderboardResponse,
     summary="Get aggregated model benchmark leaderboard with win rates and scores",
 )
+@limiter.limit("60/minute")
 async def get_leaderboard(
+    request: Request,
     task_type: Annotated[TaskType | None, Query(description="Filter by task category")] = None,
     force_refresh: Annotated[
         bool, Query(description="Bypass Redis cache and recompute from DB")

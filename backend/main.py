@@ -9,12 +9,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from backend.api.routes.eval import router as eval_router
 from backend.api.routes.leaderboard import router as leaderboard_router
 from backend.api.routes.websocket import router as websocket_router
 from backend.core.config import settings
 from backend.core.database import check_db_health, engine
+from backend.core.limiter import limiter, rate_limit_exceeded_handler
 from backend.core.redis_client import check_redis_health, close_redis
 from backend.services.observability import setup_observability
 from backend.services.scoring import close_scoring_models, init_scoring_models
@@ -52,6 +55,11 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+# Attach slowapi rate limiter to app state and exception handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # CORS Middleware configuration
 app.add_middleware(

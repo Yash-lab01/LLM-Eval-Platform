@@ -21,7 +21,7 @@ class PromptRunRequest(BaseModel):
         str_strip_whitespace=True,
     )
 
-    prompt: str = Field(min_length=1, description="Prompt text to send to models")
+    prompt: str = Field(min_length=1, max_length=50000, description="Prompt text to send to models")
     task_type: TaskType = Field(default=TaskType.QUESTION_ANSWERING, description="Category of task")
     models: list[ModelID] = Field(
         min_length=1, max_length=10, description="Target models for benchmark"
@@ -35,7 +35,7 @@ class PromptRunRequest(BaseModel):
         description="Scoring metrics to execute",
     )
     reference_output: str | None = Field(
-        default=None, description="Expected ground truth reference text"
+        default=None, max_length=50000, description="Expected ground truth reference text"
     )
 
     @model_validator(mode="after")

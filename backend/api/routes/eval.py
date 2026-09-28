@@ -5,13 +5,14 @@ import uuid
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from backend.api.middleware.auth import get_current_consumer
 from backend.core.database import get_db
+from backend.core.limiter import limiter
 from backend.models.consumer import Consumer
 from backend.models.eval import EvalRun
 from backend.schemas.consumers import TaskType
@@ -37,8 +38,10 @@ router = APIRouter(prefix="/eval", tags=["Evaluation"])
     status_code=status.HTTP_202_ACCEPTED,
     summary="Trigger an evaluation run across multiple models",
 )
+@limiter.limit("20/minute")
 async def create_eval_run(
-    request: PromptRunRequest,
+    request: Request,
+    payload: PromptRunRequest,
     background_tasks: BackgroundTasks,
     consumer: Annotated[Consumer | None, Depends(get_current_consumer)] = None,
     db: Annotated[AsyncSession, Depends(get_db)] = None,
@@ -51,10 +54,10 @@ async def create_eval_run(
     eval_run = EvalRun(
         id=run_id,
         consumer_id=consumer_id,
-        prompt_text=request.prompt,
-        task_type=request.task_type.value,
-        models=[m.value for m in request.models],
-        reference_output=request.reference_output,
+        prompt_text=payload.prompt,
+        task_type=payload.task_type.value,
+        models=[m.value for m in payload.models],
+        reference_output=payload.reference_output,
         status="pending",
     )
     db.add(eval_run)
@@ -64,7 +67,7 @@ async def create_eval_run(
     # Attempt to route via Celery; fall back to asyncio background task if broker is offline
     dispatched_celery = False
     try:
-        run_eval_task.delay(str(run_id), request.model_dump(mode="json"))
+        run_eval_task.delay(str(run_id), payload.model_dump(mode="json"))
         dispatched_celery = True
         logger.info(f"Dispatched run {run_id} to Celery eval_default queue")
     except Exception as exc:
@@ -72,13 +75,13 @@ async def create_eval_run(
 
     if not dispatched_celery:
         # Resilient background execution fallback
-        background_tasks.add_task(run_parallel_eval, run_id=run_id, request=request)
+        background_tasks.add_task(run_parallel_eval, run_id=run_id, request=payload)
 
     return {
         "run_id": str(run_id),
         "status": "pending",
-        "task_type": request.task_type.value,
-        "models": [m.value for m in request.models],
+        "task_type": payload.task_type.value,
+        "models": [m.value for m in payload.models],
         "stream_url": f"/ws/eval/{run_id}",
     }
 
