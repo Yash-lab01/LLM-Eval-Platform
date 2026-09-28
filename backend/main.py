@@ -12,8 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from backend.api.routes.batch import router as batch_router
 from backend.api.routes.eval import router as eval_router
 from backend.api.routes.leaderboard import router as leaderboard_router
+from backend.api.routes.rubrics import router as rubrics_router
+from backend.api.routes.suites import router as suites_router
 from backend.api.routes.websocket import router as websocket_router
 from backend.core.config import settings
 from backend.core.database import check_db_health, engine
@@ -73,6 +76,9 @@ app.add_middleware(
 # Mount Routes
 app.include_router(eval_router, prefix="/api/v1")
 app.include_router(leaderboard_router, prefix="/api/v1")
+app.include_router(rubrics_router, prefix="/api/v1")
+app.include_router(batch_router, prefix="/api/v1")
+app.include_router(suites_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 
