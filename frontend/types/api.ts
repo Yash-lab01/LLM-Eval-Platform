@@ -319,3 +319,55 @@ export interface RegressionReport {
   net_quality_delta: number;
   deltas: PromptRegressionDelta[];
 }
+
+// Hallucination Detection
+export interface SentenceHallucinationDetail {
+  sentence: string;
+  risk_score: number;
+  label: string;
+}
+
+export interface HallucinationAnalysisRequest {
+  candidate_text: string;
+  reference_text: string;
+}
+
+export interface HallucinationAnalysisResult {
+  overall_hallucination_score: number;
+  is_hallucinating: boolean;
+  total_sentences: number;
+  flagged_sentences: number;
+  sentences: SentenceHallucinationDetail[];
+}
+
+// RAG Evaluation
+export interface RAGScoreSchema {
+  context_relevance: number;
+  faithfulness: number;
+  answer_relevance: number;
+  composite_score: number;
+}
+
+export interface RAGRunRequest {
+  query: string;
+  contexts: string[];
+  models: ModelID[];
+  consumer_id?: string | null;
+}
+
+export interface RAGModelResult {
+  model_id: ModelID;
+  answer: string;
+  latency_ms: number;
+  token_count: number;
+  scores: RAGScoreSchema;
+}
+
+export interface RAGRunResult {
+  run_id: string;
+  query: string;
+  contexts: string[];
+  results: RAGModelResult[];
+  winner?: ModelID | null;
+  created_at: string;
+}
