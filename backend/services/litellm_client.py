@@ -9,10 +9,13 @@ import os
 import time
 from collections.abc import AsyncGenerator
 from typing import Any
+from uuid import uuid4
 
 import litellm
 
 from backend.core.config import settings
+from backend.schemas.eval import ModelResponseSchema
+from backend.schemas.models import ModelID
 from backend.services.observability import setup_observability
 
 logger = logging.getLogger(__name__)
@@ -108,3 +111,39 @@ async def stream_model_completion(
         except Exception as exc:
             logger.error(f"Unrecoverable error calling {model_id}: {exc}")
             raise
+
+
+async def generate_model_response(
+    model_id: str | ModelID,
+    prompt: str,
+    metadata: dict[str, Any] | None = None,
+) -> ModelResponseSchema:
+    """Non-streaming generation helper returning a validated ModelResponseSchema."""
+    m_id = model_id.value if hasattr(model_id, "value") else str(model_id)
+    run_id = str(uuid4())
+    final_chunk: dict[str, Any] | None = None
+
+    async for chunk in stream_model_completion(
+        run_id=run_id, model_id=m_id, prompt=prompt, metadata=metadata
+    ):
+        if chunk.get("is_final"):
+            final_chunk = chunk
+            break
+
+    if not final_chunk:
+        return ModelResponseSchema(
+            model_id=ModelID(m_id),
+            output="",
+            latency_ms=0.0,
+            token_count=0,
+            finish_reason="error",
+        )
+
+    return ModelResponseSchema(
+        model_id=ModelID(m_id),
+        output=final_chunk["output"],
+        latency_ms=final_chunk["latency_ms"],
+        token_count=final_chunk["token_count"],
+        finish_reason=final_chunk.get("finish_reason", "stop"),
+        attempt_number=final_chunk.get("attempt_number", 1),
+    )

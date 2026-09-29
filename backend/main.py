@@ -14,7 +14,9 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from backend.api.routes.batch import router as batch_router
 from backend.api.routes.eval import router as eval_router
+from backend.api.routes.hallucination import router as hallucination_router
 from backend.api.routes.leaderboard import router as leaderboard_router
+from backend.api.routes.rag import router as rag_router
 from backend.api.routes.rubrics import router as rubrics_router
 from backend.api.routes.suites import router as suites_router
 from backend.api.routes.websocket import router as websocket_router
@@ -79,6 +81,8 @@ app.include_router(leaderboard_router, prefix="/api/v1")
 app.include_router(rubrics_router, prefix="/api/v1")
 app.include_router(batch_router, prefix="/api/v1")
 app.include_router(suites_router, prefix="/api/v1")
+app.include_router(hallucination_router, prefix="/api/v1")
+app.include_router(rag_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 
