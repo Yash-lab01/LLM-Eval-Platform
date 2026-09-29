@@ -1,4 +1,4 @@
-﻿# LLM Eval Platform — Development Phases
+# LLM Eval Platform — Development Phases
 
 ## Phase Overview
 
@@ -269,29 +269,56 @@ pytest 70%+ pass. Rate limiting active. Security audit clean.
 *Goal: Batch eval, LLM-as-judge, regression testing.*
 
 ### Tasks
-- [ ] **EF-01 Batch Eval**: CSV/JSON upload → `eval_batch` queue → WebSocket progress → downloadable results
-- [ ] **EF-02 LLM-as-Judge**: Gemini judges other models via structured rubric (G-eval style)
-- [ ] **EF-03 Custom Rubric**: UI to define scoring criteria per task type, stored in consumer config JSONB
-- [ ] **EF-04 Regression Testing**: Save prompt suite → re-run → score delta report
+- [x] **EF-01 Batch Eval**: CSV/JSON upload → `eval_batch` queue → WebSocket progress → downloadable results
+- [x] **EF-02 LLM-as-Judge**: Gemini judges other models via structured rubric (G-eval style)
+- [x] **EF-03 Custom Rubric**: UI to define scoring criteria per task type, stored in consumer config JSONB
+- [x] **EF-04 Regression Testing**: Save prompt suite → re-run → score delta report
 
 ### Deliverable
-Batch eval running. LLM-as-judge scoring. Regression suite re-runnable.
+Batch eval running. LLM-as-judge scoring. Regression suite re-runnable. (Completed & pushed)
 
 ---
 
-## Phase 7B: Extra Features — Advanced
-*Goal: RAG eval, hallucination, visualizer, export, webhooks, public API.*
+## Phase 7B: Extra Features — Specialized AI Evaluation (RAG & Hallucination)
+*Goal: RAG tripartite evaluation pipeline and sentence-level NLI hallucination scoring.*
 
 ### Tasks
-- [ ] **EF-05 RAG Eval Mode**: Context Relevance + Faithfulness + Answer Relevance (PyTorch NLI)
-- [ ] **EF-06 Hallucination Score**: `nli-deberta-v3-base` sentence-level entailment (loaded at startup)
-- [ ] **EF-07 Embedding Visualizer**: UMAP 2D → scatter plot in frontend
-- [ ] **EF-08 Export Reports**: CSV / JSON / PDF (`weasyprint`)
-- [ ] **EF-09 Webhooks**: Score threshold alerts → HTTP POST to consumer URL
-- [ ] **EF-10 Public API**: Full REST + `slowapi` rate limits per API key
+- [ ] **EF-05 RAG Eval Mode**:
+  - Context Relevance (Question-Context alignment)
+  - Faithfulness (Context-to-Answer grounding via NLI)
+  - Answer Relevance (Question-to-Answer semantic matching)
+  - `FeatureFlag.RAG_EVAL` integration and specialized endpoint `POST /api/v1/eval/rag`
+- [ ] **EF-06 Hallucination Scoring**:
+  - Sentence segmentation of model generation
+  - NLI entailment / neutral / contradiction scoring against reference / context document
+  - Non-blocking execution via `loop.run_in_executor` with deterministic fallback
+  - Integration with `FeatureFlag.HALLUCINATION_DETECTION` and persistence in `eval_scores.hallucination_score`
 
 ### Deliverable
-All 10 extra features functional. Public API OpenAPI docs auto-generated.
+RAG tripartite eval and NLI sentence-level hallucination detection running with full test coverage.
+
+---
+
+## Phase 7C: Extra Features — Visuals, Export & Integrations
+*Goal: Embedding 2D scatter visualizer, PDF/HTML executive reports, webhooks, and public API.*
+
+### Tasks
+- [ ] **EF-07 Embedding Visualizer**:
+  - Sentence-transformers embedding of prompt, reference, and candidate outputs
+  - UMAP 2D dimensionality reduction to `(x, y)` coordinate clusters
+  - API endpoint `POST /api/v1/visualizer/embeddings`
+- [ ] **EF-08 Executive Export Reports**:
+  - Jinja2 executive summary report templates
+  - Downloadable HTML & PDF reports via WeasyPrint with fallback
+  - Endpoints: `GET /api/v1/eval/{run_id}/export/pdf`, `GET /api/v1/eval/{run_id}/export/html`
+- [ ] **EF-09 Webhooks**:
+  - Score threshold alert triggers (e.g. high hallucination, latency spikes)
+  - Async HTTP POST dispatcher to consumer webhook URL with exponential retry
+- [ ] **EF-10 Public API Finalization**:
+  - Full OpenAPI 3.1 documentation, tiered API key rate limits, and swagger categorization
+
+### Deliverable
+Interactive 2D UMAP scatter projection, executive PDF/HTML reports, and alert webhooks.
 
 ---
 
