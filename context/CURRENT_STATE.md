@@ -1,10 +1,10 @@
 # Current State
 
-Last updated: 2026-09-28
-Current phase: Phase 7A — Extra Features Core (NEXT)
+Last updated: 2026-09-29
+Current phase: Phase 8 — Portfolio Polish (Complete)
 
 ## Current Focus
-Phase 6 (Testing + Security Hardening) complete with 77/77 tests passing (94% coverage). Ready to begin Phase 7A (Batch Eval, LLM-as-Judge G-eval scoring, Custom Rubrics, and Regression Test suites).
+All 8 phases of the LLM Evaluation & Benchmarking Platform are 100% complete, fully tested (120/120 tests passing, 93% test coverage), and pushed to remote GitHub repository.
 
 ## Completed
 - [x] All 5 docs written in /docs/
@@ -27,9 +27,28 @@ Phase 6 (Testing + Security Hardening) complete with 77/77 tests passing (94% co
   - Chaos failure injection tests: LiteLLM transient HTTP 429 exponential backoff retry and Ollama timeout resilience.
   - Security tests: API key SHA-256 hashing, Redis auth caching (3600s TTL), and trace metadata sanitization.
   - Total test count expanded to 77/77 passing (94% coverage, exceeding 70% requirement).
+- [x] Phase 7A complete: Extra Features Core:
+  - EF-01 Batch Eval: CSV/JSON upload, `eval_batch` queue, Redis progress tracking, and CSV export.
+  - EF-02 LLM-as-Judge: Gemini grading candidate outputs via G-eval structured rubric.
+  - EF-03 Custom Rubrics: CRUD management across all 9 task categories with Redis caching.
+  - EF-04 Regression Testing: Saved prompt suites, automated execution, and score delta reports.
+  - Total test count expanded to 95/95 passing (93% coverage).
+- [x] Phase 7B complete: Extra Features — Specialized AI Evaluation:
+  - EF-05 RAG Eval Mode: Tripartite metrics (Context Relevance, Faithfulness via NLI grounding, Answer Relevance) and multi-model benchmark runner.
+  - EF-06 Hallucination Scoring: Sentence-level NLI contradiction detection, claim ungroundedness scoring, and winner penalization.
+  - Total test count expanded to 108/108 passing (93% coverage).
+- [x] Phase 7C complete: Extra Features — Visuals, Export & Integrations:
+  - EF-07 Embedding Visualizer: 2D scatter coordinates via Semantic MDS projection and pairwise cosine similarity matrix.
+  - EF-08 Executive Export Reports: Jinja2 executive summary report template with responsive print styling, standalone HTML export, and WeasyPrint PDF compilation with graceful HTML fallback.
+  - EF-09 Webhooks: Threshold-based alert rule evaluation (`high_hallucination`, `latency_spike`), HMAC-SHA256 signature verification (`X-Eval-Signature`), and async HTTP POST dispatching.
+  - Total test count expanded to 120/120 passing (93% coverage).
+- [x] Phase 8 complete: Portfolio Polish:
+  - Comprehensive, portfolio-grade `README.md` with system architecture Mermaid diagram, tech badges, quick start, API reference, and FastMCP guide.
+  - `CHANGELOG.md` documenting v1.0.0 release.
+  - Clean git history following Rule 55 / CONVENTIONS.md.
 
 ## In Progress
-- Transitioning to Phase 7A (Extra Features Core: Batch Eval, LLM-as-Judge, Custom Rubrics, Regression Testing)
+None. All planned phases (Phases 0 through 8) are 100% complete and verified.
 
 ## Phase Status
 | Phase | Status |
@@ -42,15 +61,13 @@ Phase 6 (Testing + Security Hardening) complete with 77/77 tests passing (94% co
 | Phase 4: Observability + MCP | Complete |
 | Phase 5: Frontend | Complete |
 | Phase 6: Testing + Hardening | Complete |
-| Phase 7A: Extra Features Core | Next |
-| Phase 7B: Extra Features Advanced | Not started |
-| Phase 8: Portfolio Polish | Not started |
+| Phase 7A: Extra Features Core | Complete |
+| Phase 7B: Specialized AI Eval (RAG & Hallucination) | Complete |
+| Phase 7C: Visuals, Export & Integrations | Complete |
+| Phase 8: Portfolio Polish | Complete |
 
 ## Known Problems
 None.
-
-## Next Task
-Phase 7A: Extra Features Core — EF-01 Batch Evaluation (CSV/JSON upload, `eval_batch` queue, WebSocket progress, result downloads), EF-02 LLM-as-Judge (Gemini judging models via structured G-eval rubric), EF-03 Custom Rubric Editor, and EF-04 Prompt Suite Regression Testing.
 
 ## Do Not Change
 - ModelID enum values (LiteLLM prefix format must match exactly)
