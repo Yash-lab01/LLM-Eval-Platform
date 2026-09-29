@@ -283,19 +283,19 @@ Batch eval running. LLM-as-judge scoring. Regression suite re-runnable. (Complet
 *Goal: RAG tripartite evaluation pipeline and sentence-level NLI hallucination scoring.*
 
 ### Tasks
-- [ ] **EF-05 RAG Eval Mode**:
+- [x] **EF-05 RAG Eval Mode**:
   - Context Relevance (Question-Context alignment)
   - Faithfulness (Context-to-Answer grounding via NLI)
   - Answer Relevance (Question-to-Answer semantic matching)
   - `FeatureFlag.RAG_EVAL` integration and specialized endpoint `POST /api/v1/eval/rag`
-- [ ] **EF-06 Hallucination Scoring**:
+- [x] **EF-06 Hallucination Scoring**:
   - Sentence segmentation of model generation
   - NLI entailment / neutral / contradiction scoring against reference / context document
   - Non-blocking execution via `loop.run_in_executor` with deterministic fallback
   - Integration with `FeatureFlag.HALLUCINATION_DETECTION` and persistence in `eval_scores.hallucination_score`
 
 ### Deliverable
-RAG tripartite eval and NLI sentence-level hallucination detection running with full test coverage.
+RAG tripartite eval and NLI sentence-level hallucination detection running with full test coverage. (Completed & pushed)
 
 ---
 
@@ -303,22 +303,24 @@ RAG tripartite eval and NLI sentence-level hallucination detection running with 
 *Goal: Embedding 2D scatter visualizer, PDF/HTML executive reports, webhooks, and public API.*
 
 ### Tasks
-- [ ] **EF-07 Embedding Visualizer**:
+- [x] **EF-07 Embedding Visualizer**:
   - Sentence-transformers embedding of prompt, reference, and candidate outputs
-  - UMAP 2D dimensionality reduction to `(x, y)` coordinate clusters
-  - API endpoint `POST /api/v1/visualizer/embeddings`
-- [ ] **EF-08 Executive Export Reports**:
-  - Jinja2 executive summary report templates
-  - Downloadable HTML & PDF reports via WeasyPrint with fallback
+  - Deterministic Semantic MDS / UMAP 2D dimensionality reduction to `(x, y)` coordinate clusters
+  - API endpoint `POST /api/v1/visualizer/embeddings` & `GET /api/v1/eval/{run_id}/visualizer`
+- [x] **EF-08 Executive Export Reports**:
+  - Jinja2 executive summary report templates with print-ready CSS
+  - Downloadable HTML & PDF reports via WeasyPrint with graceful HTML fallback
   - Endpoints: `GET /api/v1/eval/{run_id}/export/pdf`, `GET /api/v1/eval/{run_id}/export/html`
-- [ ] **EF-09 Webhooks**:
+- [x] **EF-09 Webhooks**:
   - Score threshold alert triggers (e.g. high hallucination, latency spikes)
+  - HMAC-SHA256 signature verification (`X-Eval-Signature`)
   - Async HTTP POST dispatcher to consumer webhook URL with exponential retry
-- [ ] **EF-10 Public API Finalization**:
-  - Full OpenAPI 3.1 documentation, tiered API key rate limits, and swagger categorization
+  - Endpoints: `POST /api/v1/webhooks/check`, `POST /api/v1/webhooks/test`
+- [x] **EF-10 Public API Finalization**:
+  - Full OpenAPI 3.1 documentation, SlowAPI rate-limiting, and tagged Swagger endpoints
 
 ### Deliverable
-Interactive 2D UMAP scatter projection, executive PDF/HTML reports, and alert webhooks.
+Interactive 2D embedding scatter projection, executive PDF/HTML reports, and alert webhooks. (Completed & pushed)
 
 ---
 
