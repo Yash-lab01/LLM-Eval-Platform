@@ -17,8 +17,11 @@ from backend.api.routes.eval import router as eval_router
 from backend.api.routes.hallucination import router as hallucination_router
 from backend.api.routes.leaderboard import router as leaderboard_router
 from backend.api.routes.rag import router as rag_router
+from backend.api.routes.reports import router as reports_router
 from backend.api.routes.rubrics import router as rubrics_router
 from backend.api.routes.suites import router as suites_router
+from backend.api.routes.visualizer import router as visualizer_router
+from backend.api.routes.webhooks import router as webhooks_router
 from backend.api.routes.websocket import router as websocket_router
 from backend.core.config import settings
 from backend.core.database import check_db_health, engine
@@ -83,6 +86,9 @@ app.include_router(batch_router, prefix="/api/v1")
 app.include_router(suites_router, prefix="/api/v1")
 app.include_router(hallucination_router, prefix="/api/v1")
 app.include_router(rag_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")
+app.include_router(visualizer_router, prefix="/api/v1")
+app.include_router(webhooks_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 
