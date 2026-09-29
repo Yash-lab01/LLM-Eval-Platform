@@ -371,3 +371,55 @@ export interface RAGRunResult {
   winner?: ModelID | null;
   created_at: string;
 }
+
+// 2D Embedding Visualizer
+export interface EmbeddingPoint {
+  id: string;
+  label: string;
+  point_type: "prompt" | "reference" | "candidate";
+  x: number;
+  y: number;
+  text_snippet: string;
+}
+
+export interface EmbeddingVisualizationRequest {
+  prompt: string;
+  reference_output?: string | null;
+  candidate_responses: Record<string, string>;
+}
+
+export interface EmbeddingVisualizationResponse {
+  points: EmbeddingPoint[];
+  similarity_matrix: Record<string, Record<string, number>>;
+  method: string;
+}
+
+// Webhook Alerts
+export enum WebhookSeverity {
+  INFO = "info",
+  WARNING = "warning",
+  CRITICAL = "critical",
+}
+
+export interface WebhookConfig {
+  url: string;
+  secret?: string | null;
+  hallucination_threshold?: number;
+  latency_threshold_ms?: number;
+}
+
+export interface WebhookAlertEvent {
+  event_id: string;
+  run_id: string;
+  consumer_id?: string | null;
+  severity: WebhookSeverity;
+  rule_triggered: string;
+  message: string;
+  details: Record<string, any>;
+  timestamp: string;
+}
+
+export interface WebhookTestRequest {
+  target_url: string;
+  secret?: string | null;
+}
