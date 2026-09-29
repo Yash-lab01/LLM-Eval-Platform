@@ -139,7 +139,10 @@ def determine_winner(
     candidates: list[tuple[ModelID, float]] = []
 
     has_quality_eval = any(
-        s.bert_score_f1 is not None or s.rouge_l is not None or s.llm_judge_score is not None
+        s.bert_score_f1 is not None
+        or s.rouge_l is not None
+        or s.llm_judge_score is not None
+        or s.hallucination_score is not None
         for s in scores
     )
 
@@ -171,6 +174,10 @@ def determine_winner(
             quality = (
                 sum(p * w for p, w in zip(quality_parts, weights, strict=False)) / total_weight
             )
+
+            # Penalize quality if hallucination score is detected
+            if model_score.hallucination_score is not None:
+                quality *= max(0.0, 1.0 - 0.5 * model_score.hallucination_score)
 
             # Modulate slightly by latency (faster response gains marginal advantage)
             speed_factor = 1.0 / (1.0 + (resp.latency_ms / 5000.0))
@@ -207,6 +214,7 @@ async def score_run_responses(
         bert_f1: float | None = None
         rouge_l_val: float | None = None
         llm_judge_val: float | None = None
+        hallucination_val: float | None = None
 
         if router.should_score_bert(reference_output) and reference_output:
             bert_f1 = await compute_bert_score(resp.output, reference_output)
@@ -233,6 +241,19 @@ async def score_run_responses(
             except Exception as exc:
                 logger.warning(f"LLM Judge scoring failed for {resp.model_id}: {exc}")
 
+        if (
+            router.should_detect_hallucination()
+            and reference_output
+            and resp.finish_reason != "error"
+            and resp.output.strip()
+        ):
+            try:
+                from backend.services.hallucination import compute_hallucination_score
+
+                hallucination_val = await compute_hallucination_score(resp.output, reference_output)
+            except Exception as exc:
+                logger.warning(f"Hallucination scoring failed for {resp.model_id}: {exc}")
+
         cost = (
             compute_cost_estimate(resp.model_id.value, resp.token_count)
             if router.should_calculate_cost()
@@ -246,7 +267,7 @@ async def score_run_responses(
             latency_ms=resp.latency_ms,
             token_count=resp.token_count,
             estimated_cost_usd=cost,
-            hallucination_score=None,
+            hallucination_score=hallucination_val,
             llm_judge_score=llm_judge_val,
         )
         scores.append(score_schema)
@@ -261,7 +282,7 @@ async def score_run_responses(
             latency_ms=resp.latency_ms,
             token_count=resp.token_count,
             estimated_cost_usd=cost,
-            hallucination_score=None,
+            hallucination_score=hallucination_val,
             llm_judge_score=llm_judge_val,
         )
         session.add(orm_score)
