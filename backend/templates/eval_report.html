@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Evaluation Report - {{ run.run_id }}</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --accent: #3b82f6;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+    }
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .card {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+      }
+      th {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+      }
+      td {
+        color: #1e293b !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .meta-text {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+    .winner-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));
+      border: 1px solid var(--accent-green);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-winner {
+      background-color: var(--accent-green);
+      color: #042f2e;
+    }
+    .badge-task {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    th {
+      background-color: rgba(0, 0, 0, 0.2);
+      text-align: left;
+      padding: 12px 14px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .code-block {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #e2e8f0;
+    }
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>LLM Benchmark Executive Report</h1>
+        <div class="meta-text">Run ID: <code>{{ run.run_id }}</code></div>
+        <div class="meta-text">Created: {{ run.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if run.created_at else 'N/A' }}</div>
+      </div>
+      <div>
+        <span class="badge badge-task">{{ run.task_type }}</span>
+      </div>
+    </div>
+
+    {% if run.winner %}
+    <div class="card winner-banner">
+      <div style="font-size: 32px;">🏆</div>
+      <div>
+        <div style="font-size: 18px; font-weight: 700; color: #34d399;">
+          Winning Model: {{ run.winner }}
+        </div>
+        <div class="meta-text">
+          Outperformed candidate models based on composite semantic quality, factual accuracy, and latency efficiency.
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <h2 style="margin-top: 0; font-size: 18px;">Performance Summary Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>BERTScore F1</th>
+            <th>ROUGE-L</th>
+            <th>LLM Judge</th>
+            <th>Hallucination</th>
+            <th>Latency</th>
+            <th>Tokens</th>
+            <th>Est. Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for score in run.scores %}
+          <tr {% if score.model_id == run.winner %}style="background-color: rgba(16, 185, 129, 0.08);"{% endif %}>
+            <td>
+              <strong>{{ score.model_id }}</strong>
+              {% if score.model_id == run.winner %}
+              <span class="badge badge-winner" style="margin-left: 6px;">WINNER</span>
+              {% endif %}
+            </td>
+            <td>{{ "%.4f"|format(score.bert_score_f1) if score.bert_score_f1 is not none else "N/A" }}</td>
+            <td>{{ "%.4f"|format(score.rouge_l) if score.rouge_l is not none else "N/A" }}</td>
+            <td>{{ "%.2f"|format(score.llm_judge_score) if score.llm_judge_score is not none else "N/A" }}</td>
+            <td>
+              {% if score.hallucination_score is not none %}
+                <span style="color: {% if score.hallucination_score >= 0.4 %}#f87171{% else %}#34d399{% endif %};">
+                  {{ "%.4f"|format(score.hallucination_score) }}
+                </span>
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            <td>{{ "%.1f"|format(score.latency_ms) }} ms</td>
+            <td>{{ score.token_count }}</td>
+            <td>${{ "%.5f"|format(score.estimated_cost_usd) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top: 0; font-size: 18px;">Evaluation Inputs</h2>
+      <div style="margin-bottom: 14px;">
+        <div style="font-weight: 600; margin-bottom: 4px; font-size: 13px; color: var(--text-muted);">ORIGINAL PROMPT:</div>
+        <div class="code-block">{{ run.prompt }}</div>
+      </div>
+      {% if run.reference_output %}
+      <div>
+        <div style="font-weight: 600; margin-bottom: 4px; font-size: 13px; color: var(--text-muted);">GROUND TRUTH REFERENCE:</div>
+        <div class="code-block">{{ run.reference_output }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top: 0; font-size: 18px;">Model Generations Breakdown</h2>
+      {% for resp in run.responses %}
+      <div style="margin-bottom: 24px; {% if not loop.last %}border-bottom: 1px solid var(--border); padding-bottom: 20px;{% endif %}">
+        <div class="response-header">
+          <span>{{ resp.model_id }}</span>
+          <span style="color: var(--text-muted); font-size: 13px;">
+            Latency: {{ "%.1f"|format(resp.latency_ms) }} ms | Tokens: {{ resp.token_count }}
+          </span>
+        </div>
+        <div class="code-block">{{ resp.output }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="footer">
+      Generated automatically by the LLM Evaluation & Benchmarking Platform
+    </div>
+  </div>
+</body>
+</html>
