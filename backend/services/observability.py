@@ -40,6 +40,18 @@ def setup_observability() -> bool:
         if "langfuse" not in litellm.failure_callback:
             litellm.failure_callback.append("langfuse")
 
+        try:
+            import types
+
+            import langfuse
+
+            if not hasattr(langfuse, "version"):
+                v_mod = types.ModuleType("version")
+                v_mod.__version__ = getattr(langfuse, "__version__", "2.0.0")
+                langfuse.version = v_mod  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
         _OBSERVABILITY_INITIALIZED = True
         logger.info(f"Langfuse observability initialized (Host: {settings.langfuse_host})")
         return True

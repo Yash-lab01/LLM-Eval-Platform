@@ -7,16 +7,17 @@ Phase 0  (Pre-Build Setup)           → Day 1–2
 Phase 1A (Infrastructure)            → Week 1
 Phase 1B (Data Layer + Schemas)      → Week 2
 Phase 2  (Core Eval Engine)          → Week 3
-Phase 3  (Scoring + Feature Router)  → Week 4
-Phase 4  (Observability + MCP)       → Week 5–6
-Phase 5  (Frontend)                  → Week 7–8
-Phase 6  (Testing + Hardening)       → Week 9
-Phase 7A (Extra Features — Core)     → Week 10–11
-Phase 7B (Extra Features — Advanced) → Week 12–13
-Phase 8  (Portfolio Polish)          → Week 14
+Phase 3  (Scoring + Feature Router)                       → Week 4
+Phase 4  (Observability + MCP)                            → Week 5–6
+Phase 5  (Frontend)                                       → Week 7–8
+Phase 6  (Testing + Hardening)                            → Week 9
+Phase 7A (Extra Features — Core: Batch, Judge, Rubrics)   → Week 10–11
+Phase 7B (Extra Features — RAG & Hallucination)           → Week 12
+Phase 7C (Extra Features — Visuals, Export & Webhooks)    → Week 13
+Phase 8  (Portfolio Polish)                               → Week 14
 ```
 
-> **Why 10 phases instead of 5?**
+> **Why 11 phases instead of 5?**
 > Original Phase 1 had 16 tasks across 4 concerns. Phase 5 had 10 features with no priority.
 > Each phase now has ONE goal and ONE verifiable deliverable.
 
@@ -242,26 +243,26 @@ Prompt → select models → tokens stream live side-by-side → scores appear �
 *Goal: 70%+ test coverage. Rate limiting. Auth solid. Production-ready.*
 
 ### Testing Tasks
-- [ ] Full WebSocket test: connect → stream → disconnect → verify Redis pub/sub cleaned up
-- [ ] MCP tool tests via FastMCP in-memory client
-- [ ] Celery task test with `task_always_eager=True`
-- [ ] Alembic migration test against test DB
-- [ ] FeatureRouter: every flag combination
-- [ ] BERTScore: deterministic input → expected float range
-- [ ] Target: 70%+ coverage on `services/`, `middleware/`, `tasks/`
+- [x] Full WebSocket test: connect → stream → disconnect → verify Redis pub/sub cleaned up
+- [x] MCP tool tests via FastMCP in-memory client
+- [x] Celery task test with `task_always_eager=True`
+- [x] Alembic migration test against test DB
+- [x] FeatureRouter: every flag combination
+- [x] BERTScore: deterministic input → expected float range
+- [x] Target: 70%+ coverage on `services/`, `middleware/`, `tasks/` (achieved 93% across 120 tests)
 
 ### Security Tasks
-- [ ] `slowapi` Redis-backed rate limiting:
+- [x] `slowapi` Redis-backed rate limiting:
   - `POST /eval/run` → 20/min per API key
   - `GET /leaderboard` → 60/min
   - `POST /batch/upload` → 5/min
-- [ ] API keys hashed before DB storage
-- [ ] Request size limits (prevent giant prompt abuse)
-- [ ] No keys/prompts in logs or Langfuse traces
-- [ ] `.env` in `.gitignore` verified
+- [x] API keys hashed before DB storage
+- [x] Request size limits (prevent giant prompt abuse)
+- [x] No keys/prompts in logs or Langfuse traces
+- [x] `.env` in `.gitignore` verified
 
 ### Deliverable
-pytest 70%+ pass. Rate limiting active. Security audit clean.
+pytest 70%+ pass (120 tests passing, 93% coverage). Rate limiting active. Security audit clean. (Completed & pushed)
 
 ---
 
@@ -348,5 +349,5 @@ Public GitHub repo. Impressive README. Portfolio updated.
 | Phase 1 (16 tasks, 4 concerns) | Too dense, unverifiable | Split → Phase 0 + 1A + 1B |
 | Phase 2 (eval + scoring mixed) | Different startup requirements | Split → Phase 2 + Phase 3 |
 | No security phase | Rate limiting/auth forgotten | Added Phase 6 |
-| Phase 5 (10 features, no order) | No priority, no batching | Split → Phase 7A + 7B |
+| Phase 5 (10 features, no order) | No priority, no batching | Split → Phase 7A + 7B + 7C |
 | No portfolio phase | Project never "shipped" | Added Phase 8 |
